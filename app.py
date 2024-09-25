@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response
 import requests
 import re
 import json
+import time
 
 app = Flask(__name__)
 
@@ -89,16 +90,7 @@ def query_anime(msg):
     data = response.json()
     return data
 
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/search', methods=['GET'])
-def search():
-    name = request.args.get('name', '')
-    if not name:
-        return jsonify({"error": "Name parameter is required"}), 400
-
+def stream_results(name, results_div_id):
     data = query_anime(name)
     if data is None:
         return jsonify({"error": "Failed to fetch data from API"}), 500
@@ -109,8 +101,21 @@ def search():
     for item in results:
         if check_url_validity(item['url']):
             valid_results.append(item)
+            result_html = f'<div class="result"><a href="{item["url"]}" target="_blank">{item["title"]}</a></div>'
+            yield f"data: {result_html}\n\n"
+            #time.sleep(0.1)  # 模拟延迟，实际使用中可以去掉
 
-    return jsonify({"results": valid_results})
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/search', methods=['GET'])
+def search():
+    name = request.args.get('name', '')
+    if not name:
+        return jsonify({"error": "Name parameter is required"}), 400
+
+    return Response(stream_results(name, 'results'), content_type='text/event-stream')
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
