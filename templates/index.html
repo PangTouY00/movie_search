@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>影视资源查询</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="text-center mt-5">影视资源查询</h1>
+        <div class="search-container mt-4">
+            <div class="input-group">
+                <input type="text" id="name" class="form-control" placeholder="请输入关键词">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" onclick="search()">搜索</button>
+                </div>
+            </div>
+        </div>
+        <div id="loading" class="loading mt-4" style="display: none;">
+            <img src="/static/loading.gif" alt="Loading..." width="100" height="100">
+        </div>
+        <div id="results" class="mt-4"></div>
+    </div>
+
+    <script>
+        document.getElementById('name').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                search();
+            }
+        });
+
+        function search() {
+            const name = document.getElementById('name').value;
+            if (!name) {
+                alert('请输入关键词');
+                return;
+            }
+
+            const loading = document.getElementById('loading');
+            const resultsDiv = document.getElementById('results');
+            loading.style.display = 'block';
+            resultsDiv.innerHTML = '';  // 清空结果区域
+
+            fetch(`/search?name=${name}`)
+                .then(response => response.json())
+                .then(data => {
+                    loading.style.display = 'none';
+                    if (data.error) {
+                        resultsDiv.innerHTML = `<p class="text-center text-danger">${data.error}</p>`;
+                    } else if (data.results.length === 0) {
+                        resultsDiv.innerHTML = '<p class="text-center">没有找到匹配的资源</p>';
+                    } else {
+                        data.results.forEach(item => {
+                            const resultDiv = document.createElement('div');
+                            resultDiv.className = 'result';
+                            resultDiv.innerHTML = `<a href="${item.url}" target="_blank">${item.title}</a>`;
+                            resultsDiv.appendChild(resultDiv);
+                        });
+                    }
+                })
+                .catch(error => {
+                    loading.style.display = 'none';
+                    resultsDiv.innerHTML = `<p class="text-center text-danger">查询失败，请稍后再试</p>`;
+                });
+        }
+    </script>
+</body>
+
+</html>
