@@ -28,3 +28,21 @@ body {
     height: 100px;
     /* 修改高度 */
 }
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .search-container {
+        margin-bottom: 15px;
+    }
+
+    .result {
+        margin-bottom: 5px;
+    }
+
+    .loading img {
+        width: 50px;
+        /* 修改宽度 */
+        height: 50px;
+        /* 修改高度 */
+    }
+}
