@@ -45,27 +45,15 @@
             loading.style.display = 'block';
             resultsDiv.innerHTML = '';  // 清空结果区域
 
-            fetch(`/search?name=${name}`)
-                .then(response => response.json())
-                .then(data => {
-                    loading.style.display = 'none';
-                    if (data.error) {
-                        resultsDiv.innerHTML = `<p class="text-center text-danger">${data.error}</p>`;
-                    } else if (data.results.length === 0) {
-                        resultsDiv.innerHTML = '<p class="text-center">没有找到匹配的资源</p>';
-                    } else {
-                        data.results.forEach(item => {
-                            const resultDiv = document.createElement('div');
-                            resultDiv.className = 'result';
-                            resultDiv.innerHTML = `<a href="${item.url}" target="_blank">${item.title}</a>`;
-                            resultsDiv.appendChild(resultDiv);
-                        });
-                    }
-                })
-                .catch(error => {
-                    loading.style.display = 'none';
-                    resultsDiv.innerHTML = `<p class="text-center text-danger">查询失败，请稍后再试</p>`;
-                });
+            const eventSource = new EventSource(`/search?name=${name}`);
+            eventSource.onmessage = function (event) {
+                resultsDiv.innerHTML += event.data;
+            };
+
+            eventSource.onerror = function () {
+                eventSource.close();
+                loading.style.display = 'none';
+            };
         }
     </script>
 </body>
