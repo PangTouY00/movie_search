@@ -4,6 +4,7 @@
 
 ## 项目结构
 
+```
 movie_search/
 ├── app.py
 ├── templates/
@@ -18,7 +19,7 @@ movie_search/
 └── .github/
 └── workflows/
 └── docker.yml
-
+```
 
 ## 安装和运行
 
