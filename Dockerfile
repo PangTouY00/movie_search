@@ -1,5 +1,5 @@
 # 使用多平台支持的基础镜像
-FROM --platform=$BUILDPLATFORM python:3.8-slim
+FROM python:3.8-slim
 
 # 设置工作目录
 WORKDIR /app
