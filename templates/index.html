@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>影视资源查询</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- Material Design Lite CSS -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -58,6 +60,12 @@
             margin-left: 20px;
         }
 
+        .history-icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+        }
+
         .history-list {
             max-height: 200px;
             overflow-y: auto;
@@ -72,20 +80,6 @@
         .update-day-container button {
             display: inline-block;
             vertical-align: middle;
-        }
-
-        .history-button {
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: #007BFF;
-            color: white;
-            font-size: 14px;
-            border: none;
-            cursor: pointer;
         }
 
         @media (max-width: 768px) {
@@ -108,64 +102,98 @@
                 margin-top: 10px;
             }
         }
+
+        /* Dialog styles */
+        .mdl-dialog {
+            width: 400px;
+            max-width: 90%;
+            margin: auto;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 999;
+        }
+
+        .mdl-dialog__content {
+            padding: 24px;
+        }
+
+        .mdl-dialog__actions {
+            padding: 8px 24px;
+            display: flex;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1 class="text-center mt-5">影视资源查询</h1>
-        <div class="search-container mt-4">
-            <div class="input-group">
-                <input type="text" id="name" class="form-control" placeholder="请输入关键词">
-                <div class="input-group-append">
-                    <button class="btn btn-primary" onclick="search()" id="search-button">搜索</button>
+    <div id="app">
+        <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+            <header class="mdl-layout__header">
+                <div class="mdl-layout__header-row">
+                    <span class="mdl-layout-title">影视资源查询</span>
                 </div>
-            </div>
-            <div class="history-container" id="history-container">
-                <h3>
-                    <button type="button" class="history-button" data-toggle="modal" data-target="#historyModal">
-                        历
-                    </button>
-                </h3>
-            </div>
-        </div>
-        <div id="loading" class="text-center mt-4" style="display: none;">
-            <img src="/static/loading.gif" alt="Loading..." width="100" height="100">
-        </div>
-        <div id="results" class="mt-4"></div>
-    </div>
-
-    <!-- 历史记录模态框 -->
-    <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="historyModalLabel">历史搜索记录</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+            </header>
+            <main class="mdl-layout__content">
+                <div class="page-content">
+                    <div class="container">
+                        <h1 class="text-center mt-5">影视资源查询</h1>
+                        <div class="search-container mt-4">
+                            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                                <input class="mdl-textfield__input" type="text" id="name" placeholder="请输入关键词">
+                                <label class="mdl-textfield__label" for="name">关键词</label>
+                            </div>
+                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                                onclick="search()" id="search-button">搜索</button>
+                            <div class="history-container" id="history-container">
+                                <button type="button"
+                                    class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                                    id="history-toggle">
+                                    <img src="/static/history.png" alt="历史搜索记录" class="history-icon">
+                                </button>
+                            </div>
+                        </div>
+                        <div id="loading" class="text-center mt-4" style="display: none;">
+                            <img src="/static/loading.gif" alt="Loading..." width="100" height="100">
+                        </div>
+                        <div id="results" class="mt-4"></div>
+                    </div>
                 </div>
-                <div class="modal-body">
-                    <ul class="list-group history-list" id="history-list-ul"></ul>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
-                </div>
-            </div>
+            </main>
         </div>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- 历史记录 Dialog -->
+    <dialog class="mdl-dialog" id="historyPopup">
+        <div class="mdl-dialog__content">
+            <h4>历史搜索记录</h4>
+            <ul class="mdl-list history-list" id="history-list-ul"></ul>
+        </div>
+        <div class="mdl-dialog__actions">
+            <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                onclick="closeHistoryPopup()">关闭</button>
+        </div>
+    </dialog>
+
+    <!-- Material Design Lite JS -->
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
     <script>
         let isSearching = false;
+        let isHistoryLoaded = false;
 
         document.getElementById('name').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 search();
             }
+        });
+
+        document.getElementById('history-toggle').addEventListener('click', function () {
+            if (!isHistoryLoaded) {
+                loadHistory();
+                isHistoryLoaded = true;
+            }
+            openHistoryPopup();
         });
 
         function search() {
@@ -223,30 +251,32 @@
                 const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                 const timeAgo = `${days}天前`;
                 const historyItem = document.createElement('li');
-                historyItem.className = 'list-group-item history-item';
+                historyItem.className = 'mdl-list__item history-item';
                 historyItem.innerHTML = `
-                    <span>${query} - ${timeAgo}</span>
-                    <button class="btn btn-info btn-sm" onclick="toggleUpdateDay(this)">备注</button>
-                    <div class="update-day-container">
-                        <select class="form-control form-control-sm update-day-select">
-                            <option value="">选择更新日期</option>
-                            <option value="Monday">周一</option>
-                            <option value="Tuesday">周二</option>
-                            <option value="Wednesday">周三</option>
-                            <option value="Thursday">周四</option>
-                            <option value="Friday">周五</option>
-                            <option value="Saturday">周六</option>
-                            <option value="Sunday">周日</option>
-                        </select>
-                        <button class="btn btn-primary btn-sm confirm-day-button" onclick="confirmDay(this)">确认</button>
-                    </div>
-                    <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
+                    <span class="mdl-list__item-primary-content">${query} - ${timeAgo}</span>
+                    <span class="mdl-list__item-secondary-action">
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="toggleUpdateDay(this)">备注</button>
+                        <div class="update-day-container">
+                            <select class="mdl-selectfield__select update-day-select">
+                                <option value="">选择更新日期</option>
+                                <option value="Monday">周一</option>
+                                <option value="Tuesday">周二</option>
+                                <option value="Wednesday">周三</option>
+                                <option value="Thursday">周四</option>
+                                <option value="Friday">周五</option>
+                                <option value="Saturday">周六</option>
+                                <option value="Sunday">周日</option>
+                            </select>
+                            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="confirmDay(this)">确认</button>
+                        </div>
+                        <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="removeFromHistory(this)">删除</button>
+                    </span>
                 `;
                 historyItem.addEventListener('click', function (event) {
                     if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
                         const query = event.target.textContent.split(' - ')[0];
                         performSearch(query);
-                        $('#historyModal').modal('hide'); // 关闭模态框
+                        closeHistoryPopup(); // 关闭 Dialog
                     }
                 });
                 historyList.appendChild(historyItem);
@@ -254,8 +284,8 @@
         }
 
         function removeFromHistory(button) {
-            const historyItem = button.parentElement;
-            const query = historyItem.querySelector('span').textContent.split(' - ')[0];
+            const historyItem = button.parentElement.parentElement;
+            const query = historyItem.querySelector('.mdl-list__item-primary-content').textContent.split(' - ')[0];
             fetch('/delete_history', {
                 method: 'POST',
                 headers: {
@@ -281,8 +311,8 @@
 
         function confirmDay(button) {
             const updateDayContainer = button.parentElement;
-            const historyItem = updateDayContainer.parentElement;
-            const query = historyItem.querySelector('span').textContent.split(' - ')[0];
+            const historyItem = updateDayContainer.parentElement.parentElement;
+            const query = historyItem.querySelector('.mdl-list__item-primary-content').textContent.split(' - ')[0];
             const updateDaySelect = updateDayContainer.querySelector('.update-day-select').value;
 
             if (updateDaySelect) {
@@ -292,9 +322,9 @@
                     .then(data => {
                         if (data.success) {
                             const updateInfo = getUpdateInfo(updateDaySelect);
-                            historyItem.querySelector('span').textContent = `${query} - ${updateInfo}`;
+                            historyItem.querySelector('.mdl-list__item-primary-content').textContent = `${query} - ${updateInfo}`;
                             updateDayContainer.style.display = 'none'; // 隐藏选择框和确认按钮
-                            $('#historyModal').modal('hide'); // 关闭历史模态框
+                            closeHistoryPopup(); // 关闭历史 Dialog
                             location.reload(); // 刷新页面
                         }
                     });
@@ -317,30 +347,32 @@
                         const timeAgo = `${days}天前`;
                         const updateInfo = updateDay ? getUpdateInfo(updateDay) : timeAgo;
                         const historyItem = document.createElement('li');
-                        historyItem.className = 'list-group-item history-item';
+                        historyItem.className = 'mdl-list__item history-item';
                         historyItem.innerHTML = `
-                            <span>${query} - ${updateInfo}</span>
-                            <button class="btn btn-info btn-sm" onclick="toggleUpdateDay(this)">备注</button>
-                            <div class="update-day-container">
-                                <select class="form-control form-control-sm update-day-select">
-                                    <option value="">选择更新日期</option>
-                                    <option value="Monday">周一</option>
-                                    <option value="Tuesday">周二</option>
-                                    <option value="Wednesday">周三</option>
-                                    <option value="Thursday">周四</option>
-                                    <option value="Friday">周五</option>
-                                    <option value="Saturday">周六</option>
-                                    <option value="Sunday">周日</option>
-                                </select>
-                                <button class="btn btn-primary btn-sm confirm-day-button" onclick="confirmDay(this)">确认</button>
-                            </div>
-                            <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
+                            <span class="mdl-list__item-primary-content">${query} - ${updateInfo}</span>
+                            <span class="mdl-list__item-secondary-action">
+                                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="toggleUpdateDay(this)">备注</button>
+                                <div class="update-day-container">
+                                    <select class="mdl-selectfield__select update-day-select">
+                                        <option value="">选择更新日期</option>
+                                        <option value="Monday">周一</option>
+                                        <option value="Tuesday">周二</option>
+                                        <option value="Wednesday">周三</option>
+                                        <option value="Thursday">周四</option>
+                                        <option value="Friday">周五</option>
+                                        <option value="Saturday">周六</option>
+                                        <option value="Sunday">周日</option>
+                                    </select>
+                                    <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="confirmDay(this)">确认</button>
+                                </div>
+                                <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored" onclick="removeFromHistory(this)">删除</button>
+                            </span>
                         `;
                         historyItem.addEventListener('click', function (event) {
                             if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
                                 const query = event.target.textContent.split(' - ')[0];
                                 performSearch(query);
-                                $('#historyModal').modal('hide'); // 关闭模态框
+                                closeHistoryPopup(); // 关闭 Dialog
                             }
                         });
                         historyList.appendChild(historyItem);
@@ -356,13 +388,15 @@
             return daysUntilUpdate === 0 ? "今天更新" : `${daysUntilUpdate}天后更新`;
         }
 
-        // 手动初始化模态框
-        $(document).ready(function () {
-            loadHistory();
-            $('#historyModal').modal({
-                show: false
-            });
-        });
+        function openHistoryPopup() {
+            const dialog = document.getElementById('historyPopup');
+            dialog.showModal();
+        }
+
+        function closeHistoryPopup() {
+            const dialog = document.getElementById('historyPopup');
+            dialog.close();
+        }
     </script>
 </body>
 
