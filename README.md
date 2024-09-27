@@ -64,7 +64,7 @@ movie_search/
 
 2. **运行Docker容器**：
     ```bash
-    docker run -d -p 5000:5000 -e FLASK_ENV=development w1770946466/movie_search:latest
+    docker run -d -p 5000:5000 -e FLASK_ENV=development -v $(pwd)/config:/app/config --name movie_search_container w1770946466/movie_search:latest
     ```
 
 3. **查看容器日志**：
