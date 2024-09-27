@@ -6,7 +6,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>影视资源查询</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .result {
+            margin-bottom: 10px;
+        }
+
+        .result a {
+            text-decoration: none;
+            color: #007BFF;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+        }
+
+        .loading img {
+            width: 100px;
+            /* 修改宽度 */
+            height: 100px;
+            /* 修改高度 */
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            cursor: pointer;
+        }
+
+        .history-item span {
+            flex-grow: 1;
+        }
+
+        .history-item button {
+            margin-left: 10px;
+        }
+
+        .history-container {
+            margin-left: 20px;
+        }
+
+        .history-icon {
+            width: 24px;
+            height: 24px;
+            vertical-align: middle;
+        }
+
+        .history-list {
+            max-height: 200px;
+            /* 设置最大高度 */
+            overflow-y: auto;
+            /* 添加垂直滚动条 */
+        }
+
+        .update-day-container {
+            display: none;
+            margin-left: 10px;
+        }
+
+        .update-day-container select,
+        .update-day-container button {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .search-container {
+                margin-bottom: 15px;
+                flex-direction: column;
+            }
+
+            .result {
+                margin-bottom: 5px;
+            }
+
+            .loading img {
+                width: 50px;
+                /* 修改宽度 */
+                height: 50px;
+                /* 修改高度 */
+            }
+
+            .history-container {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -16,8 +117,15 @@
             <div class="input-group">
                 <input type="text" id="name" class="form-control" placeholder="请输入关键词">
                 <div class="input-group-append">
-                    <button class="btn btn-primary" onclick="search()">搜索</button>
+                    <button class="btn btn-primary" onclick="search()" id="search-button">搜索</button>
                 </div>
+            </div>
+            <div class="history-container" id="history-container">
+                <h3>
+                    <button type="button" class="btn btn-link" data-toggle="modal" data-target="#historyModal">
+                        <img src="/static/history.png" alt="历史搜索记录" class="history-icon">
+                    </button>
+                </h3>
             </div>
         </div>
         <div id="loading" class="text-center mt-4" style="display: none;">
@@ -26,7 +134,33 @@
         <div id="results" class="mt-4"></div>
     </div>
 
+    <!-- 历史记录模态框 -->
+    <div class="modal fade" id="historyModal" tabindex="-1" role="dialog" aria-labelledby="historyModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalLabel">历史搜索记录</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group history-list" id="history-list-ul"></ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
+        let isSearching = false;
+
         document.getElementById('name').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 search();
@@ -34,12 +168,23 @@
         });
 
         function search() {
+            if (isSearching) return;
+
             const name = document.getElementById('name').value;
             if (!name) {
                 alert('请输入关键词');
                 return;
             }
 
+            isSearching = true;
+            document.getElementById('search-button').disabled = true;
+            document.getElementById('history-list-ul').querySelectorAll('li').forEach(item => item.style.pointerEvents = 'none');
+
+            addToHistory(name);
+            performSearch(name);
+        }
+
+        function performSearch(name) {
             const loading = document.getElementById('loading');
             const resultsDiv = document.getElementById('results');
             loading.style.display = 'block';
@@ -53,8 +198,167 @@
             eventSource.onerror = function () {
                 eventSource.close();
                 loading.style.display = 'none';
+                isSearching = false;
+                document.getElementById('search-button').disabled = false;
+                document.getElementById('history-list-ul').querySelectorAll('li').forEach(item => item.style.pointerEvents = 'auto');
             };
         }
+
+        function addToHistory(query) {
+            const historyList = document.getElementById('history-list-ul');
+            const existingItem = Array.from(historyList.children).find(item => item.querySelector('span').textContent.split(' - ')[0] === query);
+
+            if (existingItem) {
+                const timestamp = new Date();
+                const now = new Date();
+                const diff = now - timestamp;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const timeAgo = `${days}天前`;
+                existingItem.querySelector('span').textContent = `${query} - ${timeAgo}`;
+            } else {
+                const timestamp = new Date();
+                const now = new Date();
+                const diff = now - timestamp;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const timeAgo = `${days}天前`;
+                const historyItem = document.createElement('li');
+                historyItem.className = 'list-group-item history-item';
+                historyItem.innerHTML = `
+                    <span>${query} - ${timeAgo}</span>
+                    <button class="btn btn-info btn-sm" onclick="toggleUpdateDay(this)">备注</button>
+                    <div class="update-day-container">
+                        <select class="form-control form-control-sm update-day-select">
+                            <option value="">选择更新日期</option>
+                            <option value="Monday">周一</option>
+                            <option value="Tuesday">周二</option>
+                            <option value="Wednesday">周三</option>
+                            <option value="Thursday">周四</option>
+                            <option value="Friday">周五</option>
+                            <option value="Saturday">周六</option>
+                            <option value="Sunday">周日</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm confirm-day-button" onclick="confirmDay(this)">确认</button>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
+                `;
+                historyItem.addEventListener('click', function (event) {
+                    if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
+                        const query = event.target.textContent.split(' - ')[0];
+                        performSearch(query);
+                        $('#historyModal').modal('hide'); // 关闭模态框
+                    }
+                });
+                historyList.appendChild(historyItem);
+            }
+        }
+
+        function removeFromHistory(button) {
+            const historyItem = button.parentElement;
+            const query = historyItem.querySelector('span').textContent.split(' - ')[0];
+            fetch('/delete_history', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query })
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        historyItem.remove();
+                    }
+                });
+        }
+
+        function toggleUpdateDay(button) {
+            const updateDayContainer = button.nextElementSibling;
+            if (updateDayContainer.style.display === 'none' || updateDayContainer.style.display === '') {
+                updateDayContainer.style.display = 'block';
+            } else {
+                updateDayContainer.style.display = 'none';
+            }
+        }
+
+        function confirmDay(button) {
+            const updateDayContainer = button.parentElement;
+            const historyItem = updateDayContainer.parentElement;
+            const query = historyItem.querySelector('span').textContent.split(' - ')[0];
+            const updateDaySelect = updateDayContainer.querySelector('.update-day-select').value;
+
+            if (updateDaySelect) {
+                fetch(`/search?name=${query}&update_day=${updateDaySelect}`, {
+                    method: 'GET'
+                }).then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const updateInfo = getUpdateInfo(updateDaySelect);
+                            historyItem.querySelector('span').textContent = `${query} - ${updateInfo}`;
+                            updateDayContainer.style.display = 'none'; // 隐藏选择框和确认按钮
+                            $('#historyModal').modal('hide'); // 关闭历史模态框
+                            location.reload(); // 刷新页面
+                        }
+                    });
+            }
+        }
+
+        function loadHistory() {
+            fetch('/history')
+                .then(response => response.json())
+                .then(data => {
+                    const historyList = document.getElementById('history-list-ul');
+                    historyList.innerHTML = '';
+                    data.forEach(item => {
+                        const query = item[0];
+                        const timestamp = new Date(item[1]);
+                        const updateDay = item[2];
+                        const now = new Date();
+                        const diff = now - timestamp;
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const timeAgo = `${days}天前`;
+                        const updateInfo = updateDay ? getUpdateInfo(updateDay) : timeAgo;
+                        const historyItem = document.createElement('li');
+                        historyItem.className = 'list-group-item history-item';
+                        historyItem.innerHTML = `
+                            <span>${query} - ${updateInfo}</span>
+                            <button class="btn btn-info btn-sm" onclick="toggleUpdateDay(this)">备注</button>
+                            <div class="update-day-container">
+                                <select class="form-control form-control-sm update-day-select">
+                                    <option value="">选择更新日期</option>
+                                    <option value="Monday">周一</option>
+                                    <option value="Tuesday">周二</option>
+                                    <option value="Wednesday">周三</option>
+                                    <option value="Thursday">周四</option>
+                                    <option value="Friday">周五</option>
+                                    <option value="Saturday">周六</option>
+                                    <option value="Sunday">周日</option>
+                                </select>
+                                <button class="btn btn-primary btn-sm confirm-day-button" onclick="confirmDay(this)">确认</button>
+                            </div>
+                            <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
+                        `;
+                        historyItem.addEventListener('click', function (event) {
+                            if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
+                                const query = event.target.textContent.split(' - ')[0];
+                                performSearch(query);
+                                $('#historyModal').modal('hide'); // 关闭模态框
+                            }
+                        });
+                        historyList.appendChild(historyItem);
+                    });
+                });
+        }
+
+        function getUpdateInfo(updateDay) {
+            const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+            const today = new Date().getDay();
+            const updateIndex = daysOfWeek.indexOf(updateDay);
+            const daysUntilUpdate = (updateIndex - today + 7) % 7;
+            return daysUntilUpdate === 0 ? "今天更新" : `${daysUntilUpdate}天后更新`;
+        }
+
+        // 手动初始化模态框
+        $(document).ready(function () {
+            loadHistory();
+        });
     </script>
 </body>
 
