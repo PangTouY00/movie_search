@@ -5,6 +5,7 @@ import json
 import time
 import sqlite3
 from datetime import datetime, timedelta
+import os
 
 app = Flask(__name__)
 
@@ -12,7 +13,8 @@ app = Flask(__name__)
 API_URL = "https://www.hhlqilongzhu.cn/api/duanju_cat.php"
 
 # 数据库连接
-DATABASE = 'history.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, 'config', 'history.db')
 
 def init_db():
     """初始化数据库"""
