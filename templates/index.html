@@ -35,9 +35,7 @@
 
         .loading img {
             width: 100px;
-            /* 修改宽度 */
             height: 100px;
-            /* 修改高度 */
         }
 
         .history-item {
@@ -60,17 +58,9 @@
             margin-left: 20px;
         }
 
-        .history-icon {
-            width: 24px;
-            height: 24px;
-            vertical-align: middle;
-        }
-
         .history-list {
             max-height: 200px;
-            /* 设置最大高度 */
             overflow-y: auto;
-            /* 添加垂直滚动条 */
         }
 
         .update-day-container {
@@ -84,7 +74,6 @@
             vertical-align: middle;
         }
 
-        /* 响应式设计 */
         @media (max-width: 768px) {
             .search-container {
                 margin-bottom: 15px;
@@ -97,9 +86,7 @@
 
             .loading img {
                 width: 50px;
-                /* 修改宽度 */
                 height: 50px;
-                /* 修改高度 */
             }
 
             .history-container {
@@ -123,7 +110,7 @@
             <div class="history-container" id="history-container">
                 <h3>
                     <button type="button" class="btn btn-link" data-toggle="modal" data-target="#historyModal">
-                        <img src="/static/history.png" alt="历史搜索记录" class="history-icon">
+                        历史记录
                     </button>
                 </h3>
             </div>
@@ -358,6 +345,9 @@
         // 手动初始化模态框
         $(document).ready(function () {
             loadHistory();
+            $('#historyModal').modal({
+                show: false
+            });
         });
     </script>
 </body>
