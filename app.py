@@ -12,6 +12,12 @@ app = Flask(__name__)
 # API接口地址
 API_URL = "https://www.hhlqilongzhu.cn/api/duanju_cat.php"
 
+# 指定无代理
+proxies = {
+    'http': '',
+    'https': '',
+}
+
 # 数据库连接
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE = os.path.join(BASE_DIR, 'config', 'history.db')
@@ -136,7 +142,7 @@ def query_anime(msg):
     params = {
         "name": msg,
     }
-    response = requests.get(API_URL, params=params)
+    response = requests.get(API_URL, params=params, proxies=proxies)
     if response.status_code != 200:
         return None
     data = response.json()
@@ -163,7 +169,7 @@ def index():
 
 @app.route('/search', methods=['GET'])
 def search():
-    name = request.args.get('name', '')
+    name = request.args.get('name', '').strip()  # 去除多余的空格
     update_day = request.args.get('update_day', None)
     if not name:
         return jsonify({"error": "Name parameter is required"}), 400
@@ -175,6 +181,18 @@ def search():
 def history():
     history_list = get_history()
     return jsonify(history_list)
+
+@app.route('/update_history', methods=['POST'])
+def update_history():
+    data = request.json
+    query = data.get('query', '')
+    update_day = data.get('update_day', None)
+
+    if not query:
+        return jsonify({"error": "Query parameter is required"}), 400
+
+    add_or_update_history(query, update_day)  # 更新历史记录中的 update_day
+    return jsonify({"success": True})
 
 @app.route('/delete_history', methods=['POST'])
 def delete_history_route():
