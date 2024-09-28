@@ -268,25 +268,25 @@
         }
 
         function addToHistory(query) {
-            const historyList = document.getElementById('history-list-ul');
-            const existingItem = Array.from(historyList.children).find(item => item.querySelector('span').textContent.split(' - ')[0] === query);
+                const historyList = document.getElementById('history-list-ul');
+                const existingItem = Array.from(historyList.children).find(item => item.querySelector('span').textContent.split(' - ')[0] === query);
 
-            if (existingItem) {
-                const timestamp = new Date();
-                const now = new Date();
-                const diff = now - timestamp;
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const timeAgo = `${days}天前`;
-                existingItem.querySelector('span').textContent = `${query} - ${timeAgo}`;
-            } else {
-                const timestamp = new Date();
-                const now = new Date();
-                const diff = now - timestamp;
-                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const timeAgo = `${days}天前`;
-                const historyItem = document.createElement('li');
-                historyItem.className = 'list-group-item history-item';
-                historyItem.innerHTML = `
+                if (existingItem) {
+                    const timestamp = new Date();
+                    const now = new Date();
+                    const diff = now - timestamp;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const timeAgo = `${days}天前`;
+                    existingItem.querySelector('span').textContent = `${query} - ${timeAgo}`;
+                } else {
+                    const timestamp = new Date();
+                    const now = new Date();
+                    const diff = now - timestamp;
+                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                    const timeAgo = `${days}天前`;
+                    const historyItem = document.createElement('li');
+                    historyItem.className = 'list-group-item history-item';
+                    historyItem.innerHTML = `
             <span class="history-item-primary">${query} - ${timeAgo}</span>
             <span class="history-item-secondary">
                 <button class="btn btn-secondary btn-sm" onclick="toggleUpdateDay(this)">备注</button>
@@ -306,15 +306,15 @@
                 <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
             </span>
         `;
-                historyItem.addEventListener('click', function (event) {
-                    if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
-                        const query = event.target.textContent.split(' - ')[0];
-                        performSearch(query);
-                        closeHistoryPopup(); // 关闭 Dialog
-                    }
-                });
-                historyList.appendChild(historyItem);
-            }
+                    historyItem.addEventListener('click', function (event) {
+                        if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
+                            const query = event.target.textContent.split(' - ')[0];
+                            performSearch(query);
+                            closeHistoryPopup(); // 关闭 Dialog
+                        }
+                    });
+                    historyList.appendChild(historyItem);
+                }
         }
 
         function removeFromHistory(button) {
@@ -374,23 +374,23 @@
         }
 
         function loadHistory() {
-            fetch('/history')
-                .then(response => response.json())
-                .then(data => {
-                    const historyList = document.getElementById('history-list-ul');
-                    historyList.innerHTML = '';
-                    data.forEach(item => {
-                        const query = item[0];
-                        const timestamp = new Date(item[1]);
-                        const updateDay = item[2];
-                        const now = new Date();
-                        const diff = now - timestamp;
-                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                        const timeAgo = `${days}天前`;
-                        const updateInfo = updateDay ? getUpdateInfo(updateDay) : timeAgo;
-                        const historyItem = document.createElement('li');
-                        historyItem.className = 'list-group-item history-item';
-                        historyItem.innerHTML = `
+                fetch('/history')
+                    .then(response => response.json())
+                    .then(data => {
+                        const historyList = document.getElementById('history-list-ul');
+                        historyList.innerHTML = '';
+                        data.forEach(item => {
+                            const query = item[0];
+                            const timestamp = new Date(item[1]);
+                            const updateDay = item[2];
+                            const now = new Date();
+                            const diff = now - timestamp;
+                            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                            const timeAgo = `${days}天前`;
+                            const updateInfo = updateDay ? getUpdateInfo(updateDay) : timeAgo;
+                            const historyItem = document.createElement('li');
+                            historyItem.className = 'list-group-item history-item';
+                            historyItem.innerHTML = `
                     <span class="history-item-primary">${query} - ${updateInfo}</span>
                     <span class="history-item-secondary">
                         <button class="btn btn-secondary btn-sm" onclick="toggleUpdateDay(this)">备注</button>
@@ -410,16 +410,16 @@
                         <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
                     </span>
                 `;
-                        historyItem.addEventListener('click', function (event) {
-                            if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
-                                const query = event.target.textContent.split(' - ')[0];
-                                performSearch(query);
-                                closeHistoryPopup(); // 关闭 Dialog
-                            }
+                            historyItem.addEventListener('click', function (event) {
+                                if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
+                                    const query = event.target.textContent.split(' - ')[0];
+                                    performSearch(query);
+                                    closeHistoryPopup(); // 关闭 Dialog
+                                }
+                            });
+                            historyList.appendChild(historyItem);
                         });
-                        historyList.appendChild(historyItem);
                     });
-                });
         }
 
         function getUpdateInfo(updateDay) {
@@ -436,8 +436,11 @@
         }
 
         function closeHistoryPopup() {
-            const modal = new bootstrap.Modal(document.getElementById('historyModal'));
-            modal.hide();
+                const modalElement = document.getElementById('historyModal');
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) {
+                    modal.hide();
+                }
         }
     </script>
 </body>
