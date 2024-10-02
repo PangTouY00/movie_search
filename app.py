@@ -48,7 +48,7 @@ def add_or_update_history(query, update_day=None):
         cursor.execute('SELECT id FROM search_history WHERE query = ?', (query,))
         existing_record = cursor.fetchone()
         if existing_record:
-            cursor.execute('UPDATE search_history SET timestamp = CURRENT_TIMESTAMP, update_day = ? WHERE id = ?', (update_day, existing_record[0]))
+            return  # 如果已经存在，直接返回，不进行后续操作
         else:
             cursor.execute('INSERT INTO search_history (query, update_day) VALUES (?, ?)', (query, update_day))
         conn.commit()
@@ -148,6 +148,8 @@ def query_anime(msg):
     data = response.json()
     return data
 
+import datetime
+
 def stream_results(name, results_div_id):
     data = query_anime(name)
     if data is None:
@@ -159,9 +161,50 @@ def stream_results(name, results_div_id):
     for item in results:
         if check_url_validity(item['url']):
             valid_results.append(item)
-            result_html = f'<div class="result"><a href="{item["url"]}" target="_blank">{item["title"]}</a></div>'
+            
+            # 提取 share_id
+            reg = r'(?:https?:\/\/)?\bpan\.quark\.cn\/s\/([\w\-]{8,})(?!\.)'
+            match = re.search(reg, item['url'])
+            if match:
+                share_id = match.group(1)
+                
+                # 发送POST请求获取token
+                post_data = json.dumps({
+                    "pwd_id": share_id,
+                    "passcode": ""
+                })
+                headers = {'Content-Type': 'application/json'}
+                response = requests.post("https://drive.quark.cn/1/clouddrive/share/sharepage/token?pr=ucpro&fr=pc", data=post_data, headers=headers)
+                
+                if response.status_code != 200:
+                    updated_time = "Unknown"
+                else:
+                    rsp = response.json()
+                    if "ok" in rsp.get('message', ''):
+                        token = rsp.get('data', {}).get('stoken', '')
+                        token = token.replace('+', '%2B').replace('"', '%22').replace('\'', '%27').replace('/', '%2F')
+                        
+                        # 发送GET请求获取分享详情
+                        detail_url = f"https://drive-h.quark.cn/1/clouddrive/share/sharepage/detail?pwd_id={share_id}&stoken={token}&_fetch_share=1"
+                        response = requests.get(detail_url)
+                        
+                        if response.status_code != 200:
+                            updated_time = "Unknown"
+                        else:
+                            rsp2 = response.json()
+                            updated_at = rsp2.get('data', {}).get('share', {}).get('created_at', 0)
+                            if updated_at:
+                                updated_time = datetime.datetime.fromtimestamp(updated_at / 1000).strftime('%Y-%m-%d %H:%M:%S')
+                            else:
+                                updated_time = "Unknown"
+                    else:
+                        updated_time = "Unknown"
+            else:
+                updated_time = "Unknown"
+            
+            # 将更新时间作为后缀添加到搜索结果中
+            result_html = f'<div class="result"><a href="{item["url"]}" target="_blank">{item["title"]}</a> (更新时间: {updated_time})</div>'
             yield f"data: {result_html}\n\n"
-            time.sleep(0.1)  # 模拟延迟，实际使用中可以去掉
 
 @app.route('/')
 def index():
