@@ -272,49 +272,44 @@
                 const existingItem = Array.from(historyList.children).find(item => item.querySelector('span').textContent.split(' - ')[0] === query);
 
                 if (existingItem) {
-                    const timestamp = new Date();
-                    const now = new Date();
-                    const diff = now - timestamp;
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const timeAgo = `${days}天前`;
-                    existingItem.querySelector('span').textContent = `${query} - ${timeAgo}`;
-                } else {
-                    const timestamp = new Date();
-                    const now = new Date();
-                    const diff = now - timestamp;
-                    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-                    const timeAgo = `${days}天前`;
-                    const historyItem = document.createElement('li');
-                    historyItem.className = 'list-group-item history-item';
-                    historyItem.innerHTML = `
-            <span class="history-item-primary">${query} - ${timeAgo}</span>
-            <span class="history-item-secondary">
-                <button class="btn btn-secondary btn-sm" onclick="toggleUpdateDay(this)">备注</button>
-                <div class="update-day-container" style="display: none;">
-                    <select class="form-control form-control-sm update-day-select">
-                        <option value="">选择更新日期</option>
-                        <option value="Monday">周一</option>
-                        <option value="Tuesday">周二</option>
-                        <option value="Wednesday">周三</option>
-                        <option value="Thursday">周四</option>
-                        <option value="Friday">周五</option>
-                        <option value="Saturday">周六</option>
-                        <option value="Sunday">周日</option>
-                    </select>
-                    <button class="btn btn-primary btn-sm" onclick="confirmDay(this)">确认</button>
-                </div>
-                <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
-            </span>
-        `;
-                    historyItem.addEventListener('click', function (event) {
-                        if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
-                            const query = event.target.textContent.split(' - ')[0];
-                            performSearch(query);
-                            closeHistoryPopup(); // 关闭 Dialog
-                        }
-                    });
-                    historyList.appendChild(historyItem);
+                    return; // 如果已经存在，直接返回，不进行后续操作
                 }
+
+                const timestamp = new Date();
+                const now = new Date();
+                const diff = now - timestamp;
+                const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const timeAgo = `${days}天前`;
+                const historyItem = document.createElement('li');
+                historyItem.className = 'list-group-item history-item';
+                historyItem.innerHTML = `
+        <span class="history-item-primary">${query} - ${timeAgo}</span>
+        <span class="history-item-secondary">
+            <button class="btn btn-secondary btn-sm" onclick="toggleUpdateDay(this)">备注</button>
+            <div class="update-day-container" style="display: none;">
+                <select class="form-control form-control-sm update-day-select">
+                    <option value="">选择更新日期</option>
+                    <option value="Monday">周一</option>
+                    <option value="Tuesday">周二</option>
+                    <option value="Wednesday">周三</option>
+                    <option value="Thursday">周四</option>
+                    <option value="Friday">周五</option>
+                    <option value="Saturday">周六</option>
+                    <option value="Sunday">周日</option>
+                </select>
+                <button class="btn btn-primary btn-sm" onclick="confirmDay(this)">确认</button>
+            </div>
+            <button class="btn btn-danger btn-sm" onclick="removeFromHistory(this)">删除</button>
+        </span>
+    `;
+                historyItem.addEventListener('click', function (event) {
+                    if (!isSearching && event.target.tagName !== 'BUTTON' && !event.target.classList.contains('update-day-select')) {
+                        const query = event.target.textContent.split(' - ')[0];
+                        performSearch(query);
+                        closeHistoryPopup(); // 关闭 Dialog
+                    }
+                });
+                historyList.appendChild(historyItem);
         }
 
         function removeFromHistory(button) {
