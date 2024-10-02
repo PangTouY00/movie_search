@@ -234,7 +234,11 @@ def update_history():
     if not query:
         return jsonify({"error": "Query parameter is required"}), 400
 
-    add_or_update_history(query, update_day)  # 更新历史记录中的 update_day
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('UPDATE search_history SET update_day = ? WHERE query = ?', (update_day, query))
+        conn.commit()
+
     return jsonify({"success": True})
 
 @app.route('/delete_history', methods=['POST'])
