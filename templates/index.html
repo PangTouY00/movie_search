@@ -344,28 +344,35 @@
         }
 
         function confirmDay(button) {
-            const updateDayContainer = button.parentElement;
-            const historyItem = updateDayContainer.parentElement.parentElement;
-            const query = historyItem.querySelector('.history-item-primary').textContent.split(' - ')[0];
-            const updateDaySelect = updateDayContainer.querySelector('.update-day-select').value;
+                const updateDayContainer = button.parentElement;
+                const historyItem = updateDayContainer.parentElement.parentElement;
+                const query = historyItem.querySelector('.history-item-primary').textContent.split(' - ')[0];
+                const updateDaySelect = updateDayContainer.querySelector('.update-day-select').value;
 
-            if (updateDaySelect) {
-                fetch(`/update_history`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query: query, update_day: updateDaySelect })
-                }).then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            const updateInfo = getUpdateInfo(updateDaySelect);
-                            historyItem.querySelector('.history-item-primary').textContent = `${query} - ${updateInfo}`;
-                            updateDayContainer.style.display = 'none'; // 隐藏选择框和确认按钮
-                            historyItem.querySelector('.history-item-primary').style.display = 'block'; // 恢复原样
-                        }
-                    });
-            }
+                if (updateDaySelect) {
+                    fetch(`/update_history`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ query: query, update_day: updateDaySelect })
+                    }).then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                const updateInfo = getUpdateInfo(updateDaySelect);
+                                historyItem.querySelector('.history-item-primary').textContent = `${query} - ${updateInfo}`;
+                                updateDayContainer.style.display = 'none'; // 隐藏选择框和确认按钮
+                                historyItem.querySelector('.history-item-primary').style.display = 'block'; // 恢复原样
+                            } else {
+                                alert('更新备注失败，请重试。');
+                            }
+                        }).catch(error => {
+                            console.error('Error:', error);
+                            alert('更新备注失败，请重试。');
+                        });
+                } else {
+                    alert('请选择更新日期。');
+                }
         }
 
         function loadHistory() {
